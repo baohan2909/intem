@@ -955,6 +955,11 @@ function importBtw(file){
   const r = new FileReader();
   r.onload = ()=>{
     const bytes = new Uint8Array(r.result);
+    // đọc metadata dạng text trong file: tên mẫu + khổ template
+    let txt = '';
+    for(let i=0;i<Math.min(bytes.length,4000);i++) txt += String.fromCharCode(bytes[i]);
+    const mTitle = txt.match(/<Title>([^<]+)<\/Title>/);
+    const mSize  = txt.match(/<TemplateSize>([\d.]+)\s*x\s*([\d.]+)\s*mm<\/TemplateSize>/i);
     const sig = [0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A];
     const pngs = [];
     for(let i=0; i<bytes.length-8; i++){
@@ -991,9 +996,18 @@ function importBtw(file){
       c2.getContext('2d').drawImage(c, l, t, c2.width, c2.height, 0, 0, c2.width, c2.height);
       pushUndo();
       tpl.guide = c2.toDataURL('image/png');
+      if(mTitle) tpl.name = mTitle[1].trim();
+      if(mSize){
+        const tw = parseFloat(mSize[1]);
+        tpl.page.pageW = tw;
+        // đoán số tem/hàng theo khổ tem hiện tại
+        const per = Math.max(1, Math.round((tw - tpl.page.marginL*2 + tpl.page.gapX) / (tpl.labelW + tpl.page.gapX)));
+        tpl.page.perRow = per;
+      }
       URL.revokeObjectURL(url);
+      syncLabelInputs(); refreshTplSelect();
       rebuild(); syncGuideBtn();
-      toast('Đã đặt preview .btw làm nền tham chiếu — vẽ đè lên rồi xoá nền');
+      toast('Đã đọc mẫu .btw' + (mSize ? ` — khổ ${mSize[1]}×${mSize[2]}mm` : '') + '. Vẽ đè theo nền mờ rồi xoá nền.');
     };
     im.src = url;
   };
