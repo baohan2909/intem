@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NS TEM — Thiết kế & In tem mã vạch</title>
+<meta name="theme-color" content="#0B1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href='data:application/manifest+json,{"name":"NS TEM","short_name":"NS TEM","start_url":".","display":"standalone","background_color":"%230B1220","theme_color":"%230B1220"}'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap&subset=vietnamese" rel="stylesheet">
 <script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bwip-js@4.5.1/dist/bwip-js-min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#0B1220; --panel:#111A2D; --panel2:#0E1526; --line:#1E2A44; --line2:#27365A;
@@ -43,7 +47,8 @@ header{grid-column:1/4;display:flex;align-items:center;gap:14px;padding:0 16px;b
 .logo .mark{width:26px;height:26px;border:1.5px solid var(--gold);border-radius:6px;display:grid;place-items:center;color:var(--gold)}
 .logo em{font-style:normal;color:var(--gold)}
 .ver{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:2px 7px;border-radius:20px}
-#tplName{width:200px;font-family:var(--font-disp);font-weight:500}
+#tplName{font-family:var(--font-disp);font-weight:500}
+#tplSelect{width:auto;background:var(--panel2);border:1px solid var(--line);color:var(--teal);border-radius:6px;padding:6px 8px;font-family:var(--font-disp);font-weight:500}
 header .spacer{flex:1}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;font-weight:600;font-size:12.5px;border:1px solid var(--line2);color:var(--text);background:var(--panel2);transition:.15s}
 .btn:hover{border-color:var(--teal);color:var(--teal)}
@@ -137,8 +142,12 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.0</span>
-  <input id="tplName" value="TEM_BH" title="Tên mẫu tem">
+  <span class="ver">v1.2</span>
+  <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
+  <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
+  <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
+  <button class="btn sm" id="btnDupTpl" title="Nhân bản mẫu đang mở">⧉</button>
+  <button class="btn sm" id="btnDelTpl" title="Xoá mẫu đang mở" style="color:var(--red)">✕</button>
   <div class="spacer"></div>
   <button class="btn sm" id="btnUndo" title="Ctrl+Z">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Hoàn tác</button>
@@ -149,7 +158,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Lưu mẫu</button>
   <button class="btn gold" id="btnPrint">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>In tem</button>
-  <input type="file" id="fileTpl" accept=".json" hidden>
+  <input type="file" id="fileTpl" accept=".json,.btw" hidden>
 </header>
 
 <div id="toolbar">
@@ -205,7 +214,8 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
       <div class="fld"><label>Lề trái giấy (mm)</label><input type="number" id="setMarginL" min="0" step="0.1"></div>
       <div class="fld"><label>Khổ giấy ngang (mm)</label><input type="number" id="setPageW" min="10" step="0.1"></div>
     </div>
-    <p style="font-size:11px;color:var(--muted);line-height:1.7">Mặc định theo file BarTender của anh: tem 40×20&nbsp;mm, 2 tem/hàng, khổ 80.4&nbsp;mm. Trong driver máy in (Citizen CL-S / Zebra) đặt khổ giấy đúng bằng <b>Khổ giấy ngang × Cao tem</b>.</p>
+    <button class="btn sm" id="btnClearGuide" style="width:100%;justify-content:center;display:none;margin-bottom:10px;color:var(--red)">Xoá ảnh nền tham chiếu (.btw)</button>
+    <p style="font-size:11px;color:var(--muted);line-height:1.7">Mặc định theo file BarTender của anh: tem 40×20&nbsp;mm, 2 tem/hàng, khổ 80.4&nbsp;mm. Trong driver máy in (Citizen CL-S / Zebra) đặt khổ giấy đúng bằng <b>Khổ giấy ngang × Cao tem</b>. Nút <b>Nhập mẫu</b> nhận cả file <b>.btw</b>: ảnh preview trong file sẽ hiện mờ trên canvas làm nền để vẽ đè lại mẫu cũ.</p>
   </div>
 </div>
 
@@ -241,10 +251,12 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
       <div class="fld"><label>Số bản mỗi dòng</label><input type="number" id="prCopies" value="1" min="1"></div>
       <div class="fld"><label>Tổng số tem</label><input id="prTotal" readonly style="color:var(--gold);font-family:var(--font-mono)"></div>
     </div>
+    <div id="prQtyNote" style="font-size:11.5px;color:var(--teal);display:none;margin-bottom:4px"></div>
     <div id="printPrev"><span style="color:#999;font-size:12px">Xem trước trang in đầu tiên…</span></div>
     <div id="printStat"></div>
     <div class="foot">
       <button class="btn" id="prTest">In thử 1 hàng</button>
+      <button class="btn" id="prPdf">Xuất PDF</button>
       <button class="btn" id="prCancel">Đóng</button>
       <button class="btn gold" id="prGo">In toàn bộ</button>
     </div>
@@ -270,9 +282,9 @@ const DEFAULT_TPL = {
   page:{ perRow:2, gapX:0.4, marginL:0, pageW:80.4 },
   elements:[
     { id:'e1', type:'text', x:1, y:1.6, w:38, h:4,
-      props:{ content:'{Tên in tem}: {Giá bán}', font:'Be Vietnam Pro', sizePt:7.5, bold:true, italic:false, align:'center' } },
+      props:{ content:'{Tên in tem}: {Giá bán}', font:'Arial', sizePt:7.5, bold:true, italic:false, align:'center', fit:true } },
     { id:'e2', type:'text', x:1, y:5.6, w:38, h:3.4,
-      props:{ content:'{Mã tham chiếu cũ} ({Mã màu})', font:'Be Vietnam Pro', sizePt:6.5, bold:false, italic:false, align:'center' } },
+      props:{ content:'{Mã tham chiếu cũ} ({Mã màu})', font:'Arial', sizePt:6.5, bold:false, italic:false, align:'center', fit:true } },
     { id:'e3', type:'barcode', x:4.5, y:9.6, w:31, h:9,
       props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:6.5 } },
   ]
@@ -389,6 +401,14 @@ function rebuild(keepSel=true){
     x:0, y:0, width:tpl.labelW*P, height:tpl.labelH*P, fill:'#FFFFFF',
     shadowColor:'#000', shadowBlur:26, shadowOpacity:.55, cornerRadius:2
   }));
+  // lớp nền tham chiếu từ .btw (chỉ hiển thị khi thiết kế, không in)
+  if(tpl.guide){
+    const gi = new Konva.Image({ x:0, y:0, width:tpl.labelW*P, height:tpl.labelH*P, opacity:.45, listening:false });
+    const im = new Image();
+    im.onload = ()=>{ gi.image(im); gi.getLayer()?.batchDraw(); };
+    im.src = tpl.guide;
+    labelGroup.add(gi);
+  }
   // lưới mờ 5mm
   for(let m=5; m<tpl.labelW; m+=5)
     labelGroup.add(new Konva.Line({ points:[m*P,0,m*P,tpl.labelH*P], stroke:'#000', opacity:.045, strokeWidth:1, listening:false }));
@@ -400,6 +420,7 @@ function rebuild(keepSel=true){
   if(keep && tpl.elements.some(e=>e.id===keep)) select(keep, false);
   layer.batchDraw();
   updateRowNav();
+  syncGuideBtn();
 }
 
 /* Tạo Konva node cho 1 element (dùng chung designer & print) */
@@ -415,6 +436,13 @@ function makeNode(el, P, interactive){
       fontStyle: (p.bold?'bold ':'') + (p.italic?'italic':'') || 'normal',
       align: p.align, fill:'#000', lineHeight:1.15, wrap:'word'
     });
+    if(p.fit !== false && el.h > 0){                 // tự co chữ khi tràn khung
+      let fs = p.sizePt;
+      while(fs > 3.5 && node.height() > px(el.h) + 0.5){
+        fs -= 0.25;
+        node.fontSize(fs*PT2MM*P);
+      }
+    }
   }
   else if(el.type === 'barcode' || el.type === 'qr'){
     const r = renderBwip(el, px(el.w), px(el.h));
@@ -499,6 +527,15 @@ function onKey(e){
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ undo(); e.preventDefault(); }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='d'){ if(selId){ dupElement(selId); e.preventDefault(); } }
   if(e.key==='Escape') select(null);
+  if(selId && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    const el = tpl.elements.find(x=>x.id===selId); if(!el) return;
+    const d = e.shiftKey ? 1 : 0.25;
+    if(e.key==='ArrowUp') el.y = snap(el.y-d);
+    if(e.key==='ArrowDown') el.y = snap(el.y+d);
+    if(e.key==='ArrowLeft') el.x = snap(el.x-d);
+    if(e.key==='ArrowRight') el.x = snap(el.x+d);
+    rebuild(); e.preventDefault();
+  }
 }
 
 /* ---------------- Element CRUD ---------------- */
@@ -507,7 +544,7 @@ function addElement(type){
   const id = 'e' + (++idSeq);
   const base = { id, type, x:2, y:2 };
   const el =
-    type==='text'    ? {...base, w:20, h:4,  props:{ content:'Văn bản', font:'Be Vietnam Pro', sizePt:7, bold:false, italic:false, align:'left' }} :
+    type==='text'    ? {...base, w:20, h:4,  props:{ content:'Văn bản', font:'Arial', sizePt:7, bold:false, italic:false, align:'left', fit:true }} :
     type==='barcode' ? {...base, w:28, h:8,  props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:6.5 }} :
     type==='qr'      ? {...base, w:12, h:12, props:{ data:'{SKU}', ecc:'M' }} :
     type==='line'    ? {...base, w:30, h:0,  props:{ strokeMm:0.3 }} :
@@ -540,7 +577,7 @@ const BARCODE_TYPES = [
   ['code39','Code 39'], ['interleaved2of5','ITF (2/5)'], ['itf14','ITF-14'],
   ['gs1-128','GS1-128'], ['upca','UPC-A'], ['datamatrix','DataMatrix'], ['pdf417','PDF417']
 ];
-const FONTS = ['Be Vietnam Pro','Space Grotesk','JetBrains Mono','Arial','Times New Roman','Tahoma'];
+const FONTS = ['Arial','Be Vietnam Pro','Space Grotesk','JetBrains Mono','Times New Roman','Tahoma'];
 
 function showProps(){
   const body = $('#propBody');
@@ -559,7 +596,7 @@ function showProps(){
     </div>
     <div class="row2">
       <div class="fld"><label>Rộng</label><input type="number" step="0.25" data-k="w" value="${el.w}"></div>
-      ${el.type!=='text' && el.type!=='line' ? `<div class="fld"><label>Cao</label><input type="number" step="0.25" data-k="h" value="${el.h}"></div>` : '<div></div>'}
+      ${el.type!=='line' ? `<div class="fld"><label>Cao</label><input type="number" step="0.25" data-k="h" value="${el.h}"></div>` : '<div></div>'}
     </div>`;
 
   if(el.type==='text'){
@@ -576,6 +613,7 @@ function showProps(){
       <label class="chk"><input type="checkbox" data-p="bold" ${p.bold?'checked':''}> In đậm</label>
       <label class="chk"><input type="checkbox" data-p="italic" ${p.italic?'checked':''}> In nghiêng</label>
     </div>
+    <label class="chk" style="margin-top:8px"><input type="checkbox" data-p="fit" ${p.fit!==false?'checked':''}> Tự co chữ khi tràn khung</label>
     <div class="fld" style="margin-top:8px"><label>Căn lề</label>
       <div class="align-group">
         ${['left','center','right'].map(a=>`
@@ -768,13 +806,24 @@ function renderLabelCanvas(row, P){
   return cv;
 }
 
+function qtyColName(){
+  return cols.find(c => ['số lượng','so luong','sl','qty','quantity','số tem','so tem'].includes(c.toLowerCase())) || null;
+}
 function getPrintRowList(){
   const all = $('input[name=prRange]:checked').value === 'all';
   let from = 1, to = rows.length;
   if(!all){ from = Math.max(1, +$('#prFrom').value||1); to = Math.min(rows.length, +$('#prTo').value||1); }
   const copies = Math.max(1, +$('#prCopies').value||1);
+  const qk = qtyColName();
   const list = [];
-  for(let i=from-1; i<to; i++) for(let c=0;c<copies;c++) list.push(i);
+  for(let i=from-1; i<to; i++){
+    let q = 1;
+    if(qk){
+      const raw = String(rows[i][qk] ?? '').replace(/[^\d]/g,'');
+      q = raw === '' ? 1 : parseInt(raw, 10);      // ô trống = 1, ghi 0 = bỏ dòng
+    }
+    for(let c=0; c<q*copies; c++) list.push(i);
+  }
   return list;
 }
 
@@ -826,13 +875,61 @@ async function doPrint(rowsToPrint){
 }
 
 /* =====================================================================
-   TEMPLATE persistence
+   TEMPLATE LIBRARY — nhiều mẫu có tên, lưu localStorage
    ===================================================================== */
-const LS_KEY = 'nstem_tpl_v1';
+const LS_LIB = 'nstem_lib_v1', LS_LAST = 'nstem_last_v1', LS_KEY_OLD = 'nstem_tpl_v1';
+function getLib(){ try{ return JSON.parse(localStorage.getItem(LS_LIB)) || {}; }catch(e){ return {}; } }
+function setLib(lib){ localStorage.setItem(LS_LIB, JSON.stringify(lib)); }
+
+function refreshTplSelect(){
+  const lib = getLib();
+  const names = Object.keys(lib).sort((a,b)=>a.localeCompare(b,'vi'));
+  $('#tplSelect').innerHTML =
+    names.map(n=>`<option ${n===tpl.name?'selected':''}>${escapeHtml(n)}</option>`).join('') +
+    (names.includes(tpl.name) ? '' : `<option selected>${escapeHtml(tpl.name)} *</option>`);
+}
+
 function saveTpl(){
   tpl.name = $('#tplName').value.trim() || 'TEM';
-  localStorage.setItem(LS_KEY, JSON.stringify(tpl));
-  toast('Đã lưu mẫu vào máy này');
+  const lib = getLib();
+  lib[tpl.name] = tpl;
+  setLib(lib);
+  localStorage.setItem(LS_LAST, tpl.name);
+  refreshTplSelect();
+  toast(`Đã lưu mẫu “${tpl.name}”`);
+}
+function openTpl(name){
+  const lib = getLib();
+  if(!lib[name]) return;
+  pushUndo();
+  tpl = lib[name];
+  localStorage.setItem(LS_LAST, name);
+  syncLabelInputs(); refreshTplSelect(); rebuild(); select(null);
+}
+function newTpl(){
+  pushUndo();
+  tpl = JSON.parse(JSON.stringify(DEFAULT_TPL));
+  let n = 'Mẫu mới', i = 1; const lib = getLib();
+  while(lib[n]) n = 'Mẫu mới ' + (++i);
+  tpl.name = n; tpl.elements = [];
+  syncLabelInputs(); refreshTplSelect(); rebuild(); select(null);
+  toast('Đã tạo mẫu trống — nhớ bấm Lưu mẫu');
+}
+function dupTpl(){
+  pushUndo();
+  tpl = JSON.parse(JSON.stringify(tpl));
+  tpl.name += ' (bản sao)';
+  saveTpl(); syncLabelInputs(); rebuild();
+}
+function delTpl(){
+  const lib = getLib();
+  if(!lib[tpl.name]) return toast('Mẫu này chưa được lưu');
+  if(!confirm(`Xoá mẫu “${tpl.name}” khỏi thư viện?`)) return;
+  delete lib[tpl.name]; setLib(lib);
+  const names = Object.keys(lib);
+  if(names.length) openTpl(names[0]);
+  else { tpl = JSON.parse(JSON.stringify(DEFAULT_TPL)); syncLabelInputs(); rebuild(); }
+  refreshTplSelect(); toast('Đã xoá mẫu');
 }
 function exportTpl(){
   const blob = new Blob([JSON.stringify(tpl,null,2)], {type:'application/json'});
@@ -842,13 +939,65 @@ function exportTpl(){
   a.click(); URL.revokeObjectURL(a.href);
 }
 function importTplFile(file){
+  if(/\.btw$/i.test(file.name)){ importBtw(file); return; }
   const r = new FileReader();
   r.onload = ()=>{ try{
       const t = JSON.parse(r.result);
       if(!t.elements || !t.labelW) throw 'sai định dạng';
-      pushUndo(); tpl = t; syncLabelInputs(); rebuild(); toast('Đã nhập mẫu: '+(t.name||''));
+      pushUndo(); tpl = t; saveTpl(); syncLabelInputs(); rebuild();
+      toast('Đã nhập mẫu: '+(t.name||''));
     }catch(e){ toast('File mẫu không hợp lệ'); } };
   r.readAsText(file);
+}
+
+/* Nhập .btw (BarTender): bóc ảnh preview nhúng → lớp nền tham chiếu để vẽ đè */
+function importBtw(file){
+  const r = new FileReader();
+  r.onload = ()=>{
+    const bytes = new Uint8Array(r.result);
+    const sig = [0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A];
+    const pngs = [];
+    for(let i=0; i<bytes.length-8; i++){
+      if(sig.every((b,j)=>bytes[i+j]===b)){
+        // tìm IEND
+        for(let k=i+8; k<bytes.length-7; k++){
+          if(bytes[k]===0x49&&bytes[k+1]===0x45&&bytes[k+2]===0x4E&&bytes[k+3]===0x44){
+            pngs.push(bytes.slice(i, k+8)); i = k; break;
+          }
+        }
+      }
+    }
+    if(!pngs.length) return toast('Không tìm thấy ảnh preview trong file .btw');
+    const biggest = pngs.reduce((a,b)=> b.length>a.length?b:a);
+    const url = URL.createObjectURL(new Blob([biggest],{type:'image/png'}));
+    const im = new Image();
+    im.onload = ()=>{
+      // cắt viền đệm màu đồng nhất quanh preview
+      const c = document.createElement('canvas');
+      c.width = im.width; c.height = im.height;
+      const ctx = c.getContext('2d'); ctx.drawImage(im,0,0);
+      const d = ctx.getImageData(0,0,c.width,c.height).data;
+      const at = (x,y)=>{ const o=(y*c.width+x)*4; return d[o]+'-'+d[o+1]+'-'+d[o+2]; };
+      const pad = at(0,0);
+      let t=0,b=c.height-1,l=0,rg=c.width-1;
+      const rowPad = y=>{ for(let x=0;x<c.width;x+=4) if(at(x,y)!==pad) return false; return true; };
+      const colPad = x=>{ for(let y=0;y<c.height;y+=4) if(at(x,y)!==pad) return false; return true; };
+      while(t<b && rowPad(t)) t++;
+      while(b>t && rowPad(b)) b--;
+      while(l<rg && colPad(l)) l++;
+      while(rg>l && colPad(rg)) rg--;
+      const c2 = document.createElement('canvas');
+      c2.width = rg-l+1; c2.height = b-t+1;
+      c2.getContext('2d').drawImage(c, l, t, c2.width, c2.height, 0, 0, c2.width, c2.height);
+      pushUndo();
+      tpl.guide = c2.toDataURL('image/png');
+      URL.revokeObjectURL(url);
+      rebuild(); syncGuideBtn();
+      toast('Đã đặt preview .btw làm nền tham chiếu — vẽ đè lên rồi xoá nền');
+    };
+    im.src = url;
+  };
+  r.readAsArrayBuffer(file);
 }
 
 /* =====================================================================
@@ -856,10 +1005,24 @@ function importTplFile(file){
    ===================================================================== */
 document.fonts.ready.then(()=>{
   initStage();
-  const saved = localStorage.getItem(LS_KEY);
-  if(saved){ try{ tpl = JSON.parse(saved); }catch(e){} }
-  syncLabelInputs(); bindLabelInputs(); rebuild();
+  // di trú mẫu từ bản v1.0 (khoá cũ) vào thư viện
+  const lib = getLib();
+  const old = localStorage.getItem(LS_KEY_OLD);
+  if(old && !Object.keys(lib).length){
+    try{ const t = JSON.parse(old); lib[t.name||'TEM_BH'] = t; setLib(lib); }catch(e){}
+    localStorage.removeItem(LS_KEY_OLD);
+  }
+  if(!Object.keys(getLib()).length){ const l={}; l[DEFAULT_TPL.name]=DEFAULT_TPL; setLib(l); }
+  const last = localStorage.getItem(LS_LAST);
+  const lib2 = getLib();
+  tpl = JSON.parse(JSON.stringify(lib2[last] || lib2[Object.keys(lib2)[0]] || DEFAULT_TPL));
+  syncLabelInputs(); bindLabelInputs(); refreshTplSelect(); rebuild(); syncGuideBtn();
 });
+
+$('#tplSelect').onchange = e => openTpl(e.target.value.replace(/ \*$/,''));
+$('#btnNewTpl').onclick = newTpl;
+$('#btnDupTpl').onclick = dupTpl;
+$('#btnDelTpl').onclick = delTpl;
 
 $$('.tool[data-add]').forEach(b => b.onclick = ()=> addElement(b.dataset.add));
 
@@ -916,15 +1079,38 @@ $('#btnSaveTpl').onclick = saveTpl;
 $('#btnExportTpl').onclick = exportTpl;
 $('#btnImportTpl').onclick = ()=> $('#fileTpl').click();
 $('#fileTpl').onchange = e=>{ if(e.target.files[0]) importTplFile(e.target.files[0]); e.target.value=''; };
+function syncGuideBtn(){ $('#btnClearGuide').style.display = tpl.guide ? 'flex' : 'none'; }
+$('#btnClearGuide').onclick = ()=>{ pushUndo(); delete tpl.guide; rebuild(); syncGuideBtn(); toast('Đã xoá nền tham chiếu'); };
 $('#btnLoadDefault').onclick = ()=>{
   pushUndo(); tpl = JSON.parse(JSON.stringify(DEFAULT_TPL));
   syncLabelInputs(); rebuild(); toast('Đã nạp lại mẫu gốc TEM_BH');
 };
 
+async function exportPdf(rowsToPrint){
+  if(!rows.length) return toast('Chưa có dữ liệu');
+  const stat = $('#printStat');
+  const pages = await buildPageCanvases(rowsToPrint, (done,total)=>{
+    stat.textContent = `Đang dựng PDF… ${done}/${total} tem`;
+  });
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:[tpl.page.pageW, tpl.labelH],
+    orientation: tpl.page.pageW >= tpl.labelH ? 'landscape' : 'portrait' });
+  pages.forEach((p,i)=>{
+    if(i>0) doc.addPage([tpl.page.pageW, tpl.labelH], tpl.page.pageW >= tpl.labelH ? 'landscape' : 'portrait');
+    doc.addImage(p.toDataURL('image/png'), 'PNG', 0, 0, tpl.page.pageW, tpl.labelH);
+  });
+  doc.save((tpl.name||'tem') + '.pdf');
+  stat.textContent = `Đã xuất PDF ${pages.length} trang (${rowsToPrint.length} tem).`;
+}
+
 /* print modal */
 $('#btnPrint').onclick = ()=>{
   if(!rows.length) return toast('Nạp file Excel trước khi in');
   $('#prTo').value = rows.length;
+  const qk = qtyColName();
+  const note = $('#prQtyNote');
+  if(qk){ note.style.display='block'; note.textContent = `Phát hiện cột “${qk}” — mỗi dòng sẽ in đúng số tem trong cột đó (ghi 0 để bỏ dòng).`; }
+  else note.style.display='none';
   updatePrintTotal(); refreshPrintPreview();
   $('#printModal').classList.add('show');
 };
@@ -932,6 +1118,12 @@ $('#prCancel').onclick = ()=> $('#printModal').classList.remove('show');
 $$('#printModal input').forEach(i => i.addEventListener('change', ()=>{ updatePrintTotal(); refreshPrintPreview(); }));
 $('#prGo').onclick   = ()=> doPrint(getPrintRowList());
 $('#prTest').onclick = ()=> doPrint(getPrintRowList().slice(0, tpl.page.perRow));
+$('#prPdf').onclick  = ()=> exportPdf(getPrintRowList());
+
+/* PWA offline */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
