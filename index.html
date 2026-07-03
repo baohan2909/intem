@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.3</span>
+  <span class="ver">v1.3.1</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -280,7 +280,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 /* 2 mẫu gốc dựng lại từ file BarTender BH.btw & NV.btw (đo từ preview nhúng) */
 const TPL_BH = {
   name:'TEM_BAO_HIEM', labelW:41, labelH:20, dpi:300,
-  page:{ perRow:1, gapX:0, marginL:0, pageW:41 },
+  page:{ perRow:2, gapX:2, marginL:0, pageW:84 },
   elements:[
     { id:'b1', type:'text', x:0.5, y:1.7, w:40, h:2.4,
       props:{ content:'NSX: {Mã sản xuất} - {Ngày sản xuất}', font:'Arial', sizePt:6.5, bold:true, italic:false, align:'center', fit:true } },
@@ -294,7 +294,7 @@ const TPL_BH = {
 };
 const TPL_NV = {
   name:'TEM_NON_VAI', labelW:40, labelH:18.5, dpi:300,
-  page:{ perRow:1, gapX:0, marginL:0, pageW:40 },
+  page:{ perRow:2, gapX:2, marginL:0, pageW:82 },
   elements:[
     { id:'n1', type:'text', x:3.0, y:0.5, w:36, h:3.0,
       props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:8, bold:true, italic:false, align:'left', fit:true } },
@@ -1039,12 +1039,12 @@ document.fonts.ready.then(()=>{
   initStage();
   // v1.3: gỡ mẫu TEM_BH cũ, cài 2 mẫu gốc BH + NV (chạy một lần)
   const lib = getLib();
-  if(!localStorage.getItem('nstem_seed_v13')){
+  if(!localStorage.getItem('nstem_seed_v131')){
     delete lib['TEM_BH'];
     lib[TPL_BH.name] = TPL_BH;
     lib[TPL_NV.name] = TPL_NV;
     setLib(lib);
-    localStorage.setItem('nstem_seed_v13','1');
+    localStorage.setItem('nstem_seed_v131','1');
     localStorage.setItem(LS_LAST, TPL_BH.name);
     localStorage.removeItem(LS_KEY_OLD);
   }
