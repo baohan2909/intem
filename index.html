@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.3.1</span>
+  <span class="ver">v1.5</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -282,28 +282,28 @@ const TPL_BH = {
   name:'TEM_BAO_HIEM', labelW:41, labelH:20, dpi:300,
   page:{ perRow:2, gapX:2, marginL:0, pageW:84 },
   elements:[
-    { id:'b1', type:'text', x:0.5, y:1.7, w:40, h:2.4,
-      props:{ content:'NSX: {Mã sản xuất} - {Ngày sản xuất}', font:'Arial', sizePt:6.5, bold:true, italic:false, align:'center', fit:true } },
-    { id:'b2', type:'text', x:0.5, y:4.3, w:40, h:2.2,
-      props:{ content:'{Mã tham chiếu cũ}', font:'Arial', sizePt:7, bold:true, italic:false, align:'center', fit:true } },
-    { id:'b3', type:'barcode', x:7.5, y:7.2, w:26, h:7.8,
-      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:5.5 } },
-    { id:'b4', type:'text', x:0.5, y:15.6, w:40, h:3.5,
-      props:{ content:'{Giá bán}', font:'Arial', sizePt:11, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b1', type:'text', x:0.5, y:1.0, w:40, h:3.2,
+      props:{ content:'NSX: {Ngày sản xuất} - {Tên in tem}', font:'Arial', sizePt:8, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b2', type:'text', x:0.5, y:4.3, w:40, h:4.1,
+      props:{ content:'{Mã tham chiếu cũ}', font:'Arial', sizePt:12, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b3', type:'barcode', x:6.5, y:8.6, w:28, h:7.1,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:8 } },
+    { id:'b4', type:'text', x:0.5, y:15.9, w:40, h:3.9,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:13, bold:true, italic:false, align:'center', fit:true } },
   ]
 };
 const TPL_NV = {
   name:'TEM_NON_VAI', labelW:40, labelH:18.5, dpi:300,
   page:{ perRow:2, gapX:2, marginL:0, pageW:82 },
   elements:[
-    { id:'n1', type:'text', x:3.0, y:0.5, w:36, h:3.0,
-      props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:8, bold:true, italic:false, align:'left', fit:true } },
-    { id:'n2', type:'text', x:0.5, y:3.8, w:39, h:2.1,
-      props:{ content:'{Mã sản xuất}', font:'Arial', sizePt:6.5, bold:false, italic:false, align:'center', fit:true } },
-    { id:'n3', type:'barcode', x:8.0, y:6.2, w:25, h:7.6,
-      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:5.5 } },
-    { id:'n4', type:'text', x:0.5, y:14.3, w:39, h:3.2,
-      props:{ content:'{Giá bán}', font:'Arial', sizePt:8.5, bold:true, italic:false, align:'center', fit:true } },
+    { id:'n1', type:'text', x:1.0, y:0.4, w:38, h:3.2,
+      props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:9, bold:true, italic:false, align:'left', fit:true } },
+    { id:'n2', type:'text', x:0.5, y:3.7, w:39, h:3.4,
+      props:{ content:'{Mã sản xuất}', font:'Arial', sizePt:10, bold:false, italic:false, align:'center', fit:true } },
+    { id:'n3', type:'barcode', x:7.5, y:7.2, w:25, h:7.0,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:8 } },
+    { id:'n4', type:'text', x:0.5, y:14.6, w:39, h:3.5,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:12, bold:true, italic:false, align:'center', fit:true } },
   ]
 };
 const DEFAULT_TPL = TPL_BH;
@@ -334,22 +334,42 @@ function resolveStr(str, row){
 const previewRow = () => rows[curRow] || null;
 
 /* ---------------- Barcode render (bwip-js) ---------------- */
-function renderBwip(el, wPx, hPx){
+function renderBwip(el, wPx, hPx, P){
   const c = document.createElement('canvas');
   const props = el.props;
   try{
     const data = resolveStr(props.data, previewRowForRender) || ' ';
     if(el.type === 'qr'){
       bwipjs.toCanvas(c, { bcid:'qrcode', text:data, scale:Math.max(2, Math.ceil(wPx/33)), eclevel:props.ecc||'M' });
+      return { canvas:c, ok:true };
+    }
+    // vẽ vạch riêng (không kèm số) rồi tự vẽ số bằng Arial cho đồng bộ font
+    const showText = !!props.showText;
+    const textPx = (props.textPt||6.5) * PT2MM * P;
+    const barsH = Math.max(6, hPx - (showText ? textPx*1.35 : 0));
+    const tmp = document.createElement('canvas');
+    bwipjs.toCanvas(tmp, { bcid:props.bcid, text:data, scale:2, height:8, includetext:false });
+    const SS = window.__printSS || 1;                 // hệ số supersample khi in
+    // module nguyên pixel: scale lớn nhất vừa khung, chia hết cho SS
+    let scale = Math.max(2, Math.floor(2 * wPx / tmp.width));
+    if(SS > 1) scale = Math.max(SS, Math.floor(scale/SS)*SS);
+    bwipjs.toCanvas(tmp, { bcid:props.bcid, text:data, scale, height:8, includetext:false });
+    c.width = Math.max(2, Math.round(wPx));
+    c.height = Math.max(2, Math.round(hPx));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.imageSmoothingEnabled = false;
+    if(tmp.width <= c.width + 1){
+      // căn giữa, giữ nguyên bề rộng vạch — từng module khớp đúng dot đầu in
+      ctx.drawImage(tmp, Math.round((c.width - tmp.width)/2), 0, tmp.width, Math.round(barsH));
     }else{
-      const opts = { bcid:props.bcid, text:data, scale:2, height:8, includetext:false };
-      bwipjs.toCanvas(c, opts);                       // đo kích thước tự nhiên
-      const scale = Math.max(2, Math.ceil(2 * wPx / c.width));
-      const showText = !!props.showText;
-      bwipjs.toCanvas(c, { bcid:props.bcid, text:data, scale,
-        height: Math.max(3, hPx/ (scale/2) /8 ),      // xấp xỉ, sẽ kéo giãn khi vẽ
-        includetext:showText, textxalign:'center',
-        textsize: (props.textPt||6.5) * 1.4 });
+      ctx.drawImage(tmp, 0, 0, c.width, Math.round(barsH));   // khung quá hẹp: đành co
+    }
+    if(showText){
+      ctx.fillStyle = '#000';
+      ctx.font = `${textPx.toFixed(1)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText(data, c.width/2, barsH + textPx*1.05);
     }
     return { canvas:c, ok:true };
   }catch(err){
@@ -463,7 +483,7 @@ function makeNode(el, P, interactive){
     }
   }
   else if(el.type === 'barcode' || el.type === 'qr'){
-    const r = renderBwip(el, px(el.w), px(el.h));
+    const r = renderBwip(el, px(el.w), px(el.h), P);
     node = new Konva.Image({ x:px(el.x), y:px(el.y), width:px(el.w), height:px(el.h), image:r.canvas });
   }
   else if(el.type === 'rect'){
@@ -791,6 +811,18 @@ function updateRowNav(){
 /* =====================================================================
    PRINT — render 300dpi rồi in qua driver (@page = 1 hàng tem)
    ===================================================================== */
+function binarize(cv){          // máy in nhiệt: chỉ đen hoặc trắng, khử răng cưa dithering
+  const ctx = cv.getContext('2d');
+  const im = ctx.getImageData(0,0,cv.width,cv.height);
+  const d = im.data;
+  for(let i=0;i<d.length;i+=4){
+    const v = (d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114) < 140 ? 0 : 255;
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+  }
+  ctx.putImageData(im,0,0);
+  return cv;
+}
+
 async function buildPageCanvases(rowIdxList, onProgress){
   const P = tpl.dpi/25.4;                       // px/mm ở DPI in
   const {perRow, gapX, marginL, pageW} = tpl.page;
@@ -805,6 +837,7 @@ async function buildPageCanvases(rowIdxList, onProgress){
       const labelCv = renderLabelCanvas(rows[rowIdxList[i+j]], P);
       ctx.drawImage(labelCv, Math.round((marginL + j*(tpl.labelW+gapX))*P), 0);
     }
+    binarize(page);
     pages.push(page);
     if(onProgress && i % 20 === 0){ onProgress(i, rowIdxList.length); await new Promise(r=>setTimeout(r,0)); }
   }
@@ -813,13 +846,22 @@ async function buildPageCanvases(rowIdxList, onProgress){
 
 function renderLabelCanvas(row, P){
   previewRowForRender = row;
+  const SS = 3;                                   // render 3x DPI rồi thu về → nét chữ mượt
+  window.__printSS = SS;
+  const PH = P * SS;
   const g = new Konva.Group();
-  g.add(new Konva.Rect({x:0,y:0,width:tpl.labelW*P,height:tpl.labelH*P,fill:'#fff'}));
-  tpl.elements.forEach(el => g.add(makeNode(el, P, false)));
-  const st = new Konva.Stage({ container:document.createElement('div'), width:Math.round(tpl.labelW*P), height:Math.round(tpl.labelH*P) });
+  g.add(new Konva.Rect({x:0,y:0,width:tpl.labelW*PH,height:tpl.labelH*PH,fill:'#fff'}));
+  tpl.elements.forEach(el => g.add(makeNode(el, PH, false)));
+  const st = new Konva.Stage({ container:document.createElement('div'), width:Math.round(tpl.labelW*PH), height:Math.round(tpl.labelH*PH) });
   const ly = new Konva.Layer(); st.add(ly); ly.add(g); ly.draw();
-  const cv = st.toCanvas({ pixelRatio:1 });
+  const hi = st.toCanvas({ pixelRatio:1 });
   st.destroy();
+  window.__printSS = 1;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(tpl.labelW*P); cv.height = Math.round(tpl.labelH*P);
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(hi, 0, 0, cv.width, cv.height);
   previewRowForRender = previewRow();
   return cv;
 }
@@ -1039,12 +1081,12 @@ document.fonts.ready.then(()=>{
   initStage();
   // v1.3: gỡ mẫu TEM_BH cũ, cài 2 mẫu gốc BH + NV (chạy một lần)
   const lib = getLib();
-  if(!localStorage.getItem('nstem_seed_v131')){
+  if(!localStorage.getItem('nstem_seed_v14')){
     delete lib['TEM_BH'];
     lib[TPL_BH.name] = TPL_BH;
     lib[TPL_NV.name] = TPL_NV;
     setLib(lib);
-    localStorage.setItem('nstem_seed_v131','1');
+    localStorage.setItem('nstem_seed_v14','1');
     localStorage.setItem(LS_LAST, TPL_BH.name);
     localStorage.removeItem(LS_KEY_OLD);
   }
