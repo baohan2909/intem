@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.2</span>
+  <span class="ver">v1.3</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -215,7 +215,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
       <div class="fld"><label>Khổ giấy ngang (mm)</label><input type="number" id="setPageW" min="10" step="0.1"></div>
     </div>
     <button class="btn sm" id="btnClearGuide" style="width:100%;justify-content:center;display:none;margin-bottom:10px;color:var(--red)">Xoá ảnh nền tham chiếu (.btw)</button>
-    <p style="font-size:11px;color:var(--muted);line-height:1.7">Mặc định theo file BarTender của anh: tem 40×20&nbsp;mm, 2 tem/hàng, khổ 80.4&nbsp;mm. Trong driver máy in (Citizen CL-S / Zebra) đặt khổ giấy đúng bằng <b>Khổ giấy ngang × Cao tem</b>. Nút <b>Nhập mẫu</b> nhận cả file <b>.btw</b>: ảnh preview trong file sẽ hiện mờ trên canvas làm nền để vẽ đè lại mẫu cũ.</p>
+    <p style="font-size:11px;color:var(--muted);line-height:1.7">Mặc định theo file BarTender của anh: TEM_BAO_HIEM 41×20tem 40×20&nbsp;mm, 2 tem/hàng, khổ 80.4&nbsp;mmnbsp;mm và TEM_NON_VAI 40×18.5tem 40×20&nbsp;mm, 2 tem/hàng, khổ 80.4&nbsp;mmnbsp;mm, 1 tem/hàng. Trong driver máy in (Citizen CL-S / Zebra) đặt khổ giấy đúng bằng <b>Khổ giấy ngang × Cao tem</b>. Nút <b>Nhập mẫu</b> nhận cả file <b>.btw</b>: ảnh preview trong file sẽ hiện mờ trên canvas làm nền để vẽ đè lại mẫu cũ.</p>
   </div>
 </div>
 
@@ -277,18 +277,36 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
 /* ---------------- Template model (đơn vị: mm) ---------------- */
-const DEFAULT_TPL = {
-  name:'TEM_BH', labelW:40, labelH:20, dpi:300,
-  page:{ perRow:2, gapX:0.4, marginL:0, pageW:80.4 },
+/* 2 mẫu gốc dựng lại từ file BarTender BH.btw & NV.btw (đo từ preview nhúng) */
+const TPL_BH = {
+  name:'TEM_BAO_HIEM', labelW:41, labelH:20, dpi:300,
+  page:{ perRow:1, gapX:0, marginL:0, pageW:41 },
   elements:[
-    { id:'e1', type:'text', x:1, y:1.6, w:38, h:4,
-      props:{ content:'{Tên in tem}: {Giá bán}', font:'Arial', sizePt:7.5, bold:true, italic:false, align:'center', fit:true } },
-    { id:'e2', type:'text', x:1, y:5.6, w:38, h:3.4,
-      props:{ content:'{Mã tham chiếu cũ} ({Mã màu})', font:'Arial', sizePt:6.5, bold:false, italic:false, align:'center', fit:true } },
-    { id:'e3', type:'barcode', x:4.5, y:9.6, w:31, h:9,
-      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:6.5 } },
+    { id:'b1', type:'text', x:0.5, y:1.7, w:40, h:2.4,
+      props:{ content:'NSX: {Mã sản xuất} - {Ngày sản xuất}', font:'Arial', sizePt:6.5, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b2', type:'text', x:0.5, y:4.3, w:40, h:2.2,
+      props:{ content:'{Mã tham chiếu cũ}', font:'Arial', sizePt:7, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b3', type:'barcode', x:7.5, y:7.2, w:26, h:7.8,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:5.5 } },
+    { id:'b4', type:'text', x:0.5, y:15.6, w:40, h:3.5,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:11, bold:true, italic:false, align:'center', fit:true } },
   ]
 };
+const TPL_NV = {
+  name:'TEM_NON_VAI', labelW:40, labelH:18.5, dpi:300,
+  page:{ perRow:1, gapX:0, marginL:0, pageW:40 },
+  elements:[
+    { id:'n1', type:'text', x:3.0, y:0.5, w:36, h:3.0,
+      props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:8, bold:true, italic:false, align:'left', fit:true } },
+    { id:'n2', type:'text', x:0.5, y:3.8, w:39, h:2.1,
+      props:{ content:'{Mã sản xuất}', font:'Arial', sizePt:6.5, bold:false, italic:false, align:'center', fit:true } },
+    { id:'n3', type:'barcode', x:8.0, y:6.2, w:25, h:7.6,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:5.5 } },
+    { id:'n4', type:'text', x:0.5, y:14.3, w:39, h:3.2,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:8.5, bold:true, italic:false, align:'center', fit:true } },
+  ]
+};
+const DEFAULT_TPL = TPL_BH;
 
 let tpl = JSON.parse(JSON.stringify(DEFAULT_TPL));
 let rows = [];            // dữ liệu Excel (mảng object, key đã trim)
@@ -1019,14 +1037,18 @@ function importBtw(file){
    ===================================================================== */
 document.fonts.ready.then(()=>{
   initStage();
-  // di trú mẫu từ bản v1.0 (khoá cũ) vào thư viện
+  // v1.3: gỡ mẫu TEM_BH cũ, cài 2 mẫu gốc BH + NV (chạy một lần)
   const lib = getLib();
-  const old = localStorage.getItem(LS_KEY_OLD);
-  if(old && !Object.keys(lib).length){
-    try{ const t = JSON.parse(old); lib[t.name||'TEM_BH'] = t; setLib(lib); }catch(e){}
+  if(!localStorage.getItem('nstem_seed_v13')){
+    delete lib['TEM_BH'];
+    lib[TPL_BH.name] = TPL_BH;
+    lib[TPL_NV.name] = TPL_NV;
+    setLib(lib);
+    localStorage.setItem('nstem_seed_v13','1');
+    localStorage.setItem(LS_LAST, TPL_BH.name);
     localStorage.removeItem(LS_KEY_OLD);
   }
-  if(!Object.keys(getLib()).length){ const l={}; l[DEFAULT_TPL.name]=DEFAULT_TPL; setLib(l); }
+  if(!Object.keys(getLib()).length){ const l={}; l[TPL_BH.name]=TPL_BH; l[TPL_NV.name]=TPL_NV; setLib(l); }
   const last = localStorage.getItem(LS_LAST);
   const lib2 = getLib();
   tpl = JSON.parse(JSON.stringify(lib2[last] || lib2[Object.keys(lib2)[0]] || DEFAULT_TPL));
@@ -1096,8 +1118,14 @@ $('#fileTpl').onchange = e=>{ if(e.target.files[0]) importTplFile(e.target.files
 function syncGuideBtn(){ $('#btnClearGuide').style.display = tpl.guide ? 'flex' : 'none'; }
 $('#btnClearGuide').onclick = ()=>{ pushUndo(); delete tpl.guide; rebuild(); syncGuideBtn(); toast('Đã xoá nền tham chiếu'); };
 $('#btnLoadDefault').onclick = ()=>{
-  pushUndo(); tpl = JSON.parse(JSON.stringify(DEFAULT_TPL));
-  syncLabelInputs(); rebuild(); toast('Đã nạp lại mẫu gốc TEM_BH');
+  pushUndo();
+  const lib = getLib();
+  lib[TPL_BH.name] = JSON.parse(JSON.stringify(TPL_BH));
+  lib[TPL_NV.name] = JSON.parse(JSON.stringify(TPL_NV));
+  setLib(lib);
+  tpl = JSON.parse(JSON.stringify(TPL_BH));
+  syncLabelInputs(); refreshTplSelect(); rebuild();
+  toast('Đã khôi phục 2 mẫu gốc: TEM_BAO_HIEM + TEM_NON_VAI');
 };
 
 async function exportPdf(rowsToPrint){
