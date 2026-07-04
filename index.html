@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.5</span>
+  <span class="ver">v1.6</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -282,28 +282,28 @@ const TPL_BH = {
   name:'TEM_BAO_HIEM', labelW:41, labelH:20, dpi:300,
   page:{ perRow:2, gapX:2, marginL:0, pageW:84 },
   elements:[
-    { id:'b1', type:'text', x:0.5, y:1.0, w:40, h:3.2,
-      props:{ content:'NSX: {Ngày sản xuất} - {Tên in tem}', font:'Arial', sizePt:8, bold:true, italic:false, align:'center', fit:true } },
-    { id:'b2', type:'text', x:0.5, y:4.3, w:40, h:4.1,
-      props:{ content:'{Mã tham chiếu cũ}', font:'Arial', sizePt:12, bold:true, italic:false, align:'center', fit:true } },
-    { id:'b3', type:'barcode', x:6.5, y:8.6, w:28, h:7.1,
-      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:8 } },
-    { id:'b4', type:'text', x:0.5, y:15.9, w:40, h:3.9,
-      props:{ content:'{Giá bán}', font:'Arial', sizePt:13, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b1', type:'text', x:0.5, y:1.7, w:40, h:2.2,
+      props:{ content:'NSX: {Ngày sản xuất} - {Tên in tem}', font:'Arial', sizePt:7, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b2', type:'text', x:0.5, y:4.1, w:40, h:2.5,
+      props:{ content:'{Mã tham chiếu cũ}', font:'Arial', sizePt:8, bold:true, italic:false, align:'center', fit:true } },
+    { id:'b3', type:'barcode', x:7.5, y:7.2, w:26, h:8.5,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:6.5 } },
+    { id:'b4', type:'text', x:0.5, y:15.7, w:40, h:3.2,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:11, bold:true, italic:false, align:'center', fit:true } },
   ]
 };
 const TPL_NV = {
   name:'TEM_NON_VAI', labelW:40, labelH:18.5, dpi:300,
   page:{ perRow:2, gapX:2, marginL:0, pageW:82 },
   elements:[
-    { id:'n1', type:'text', x:1.0, y:0.4, w:38, h:3.2,
-      props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:9, bold:true, italic:false, align:'left', fit:true } },
-    { id:'n2', type:'text', x:0.5, y:3.7, w:39, h:3.4,
-      props:{ content:'{Mã sản xuất}', font:'Arial', sizePt:10, bold:false, italic:false, align:'center', fit:true } },
-    { id:'n3', type:'barcode', x:7.5, y:7.2, w:25, h:7.0,
-      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:8 } },
-    { id:'n4', type:'text', x:0.5, y:14.6, w:39, h:3.5,
-      props:{ content:'{Giá bán}', font:'Arial', sizePt:12, bold:true, italic:false, align:'center', fit:true } },
+    { id:'n1', type:'text', x:1.0, y:0.5, w:38, h:2.8,
+      props:{ content:'{Tên in tem} - {SKU}', font:'Arial', sizePt:8, bold:true, italic:false, align:'left', fit:true } },
+    { id:'n2', type:'text', x:0.5, y:3.7, w:39, h:2.2,
+      props:{ content:'{Mã sản xuất}', font:'Arial', sizePt:6.5, bold:false, italic:false, align:'center', fit:true } },
+    { id:'n3', type:'barcode', x:7.5, y:6.2, w:25, h:8.1,
+      props:{ bcid:'code128', data:'{Barcode}', showText:true, textPt:6.5 } },
+    { id:'n4', type:'text', x:0.5, y:14.4, w:39, h:3.0,
+      props:{ content:'{Giá bán}', font:'Arial', sizePt:8.5, bold:true, italic:false, align:'center', fit:true } },
   ]
 };
 const DEFAULT_TPL = TPL_BH;
@@ -1081,12 +1081,12 @@ document.fonts.ready.then(()=>{
   initStage();
   // v1.3: gỡ mẫu TEM_BH cũ, cài 2 mẫu gốc BH + NV (chạy một lần)
   const lib = getLib();
-  if(!localStorage.getItem('nstem_seed_v14')){
+  if(!localStorage.getItem('nstem_seed_v16')){
     delete lib['TEM_BH'];
     lib[TPL_BH.name] = TPL_BH;
     lib[TPL_NV.name] = TPL_NV;
     setLib(lib);
-    localStorage.setItem('nstem_seed_v14','1');
+    localStorage.setItem('nstem_seed_v16','1');
     localStorage.setItem(LS_LAST, TPL_BH.name);
     localStorage.removeItem(LS_KEY_OLD);
   }
