@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.8</span>
+  <span class="ver">v1.9</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -521,7 +521,7 @@ function makeNode(el, P, interactive){
       if(el.type==='line'){ el.w = snap(Math.max(2, el.w*node.scaleX())); }
       else{
         el.w = snap(Math.max(2, node.width()*node.scaleX()/P));
-        if(el.type!=='text') el.h = snap(Math.max(1.5, node.height()*node.scaleY()/P));
+        el.h = snap(Math.max(1.5, node.height()*node.scaleY()/P));
       }
       if(el.type==='qr') el.h = el.w;   // QR luôn vuông
       node.scale({x:1,y:1});
@@ -540,9 +540,8 @@ function select(id, redraw=true){
   const node = layer.findOne('#'+id);
   if(node){
     const el = tpl.elements.find(e=>e.id===id);
-    tr.enabledAnchors( el.type==='text'
+    tr.enabledAnchors( el.type==='line'
       ? ['middle-left','middle-right']
-      : el.type==='line' ? ['middle-left','middle-right']
       : ['top-left','top-right','bottom-left','bottom-right','middle-left','middle-right','top-center','bottom-center']);
     tr.keepRatio(el.type==='qr' || el.type==='image');
     tr.nodes([node]); trLayer.batchDraw();
@@ -710,9 +709,16 @@ function showProps(){
   });
   body.querySelectorAll('[data-p]').forEach(inp => inp.onchange = ()=>{
     pushUndo();
-    el.props[inp.dataset.p] = inp.type==='checkbox' ? inp.checked
+    const key = inp.dataset.p;
+    el.props[key] = inp.type==='checkbox' ? inp.checked
       : inp.type==='number' ? (parseFloat(inp.value)||0) : inp.value;
+    // Anh chỉnh cỡ chữ → tắt tự co để giữ đúng cỡ đã chọn
+    if(el.type==='text' && key==='sizePt' && el.props.fit!==false){
+      el.props.fit = false;
+      toast('Đã tắt tự co để giữ đúng cỡ chữ');
+    }
     rebuild();
+    if(el.type==='text' && key==='sizePt') showProps();  // cập nhật checkbox fit
   });
   body.querySelectorAll('[data-align]').forEach(b => b.onclick = ()=>{
     pushUndo(); el.props.align = b.dataset.align; rebuild(); showProps();
