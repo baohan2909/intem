@@ -1,5 +1,5 @@
 /* NS TEM v1.3 — service worker: offline cache-first */
-const CACHE = 'nstem-v1.9';
+const CACHE = 'nstem-v2.0';
 const CORE = [
   './',
   './index.html',
