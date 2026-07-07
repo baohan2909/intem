@@ -142,7 +142,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     </span>
     NS <em>TEM</em>
   </div>
-  <span class="ver">v1.6</span>
+  <span class="ver">v1.8</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -251,6 +251,8 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
       <div class="fld"><label>Số bản mỗi dòng</label><input type="number" id="prCopies" value="1" min="1"></div>
       <div class="fld"><label>Tổng số tem</label><input id="prTotal" readonly style="color:var(--gold);font-family:var(--font-mono)"></div>
     </div>
+    <div class="fld" id="prPrinterWrap" style="display:none"><label>Máy in — in thẳng, không qua hộp thoại</label>
+      <select id="prPrinter"></select></div>
     <div id="prQtyNote" style="font-size:11.5px;color:var(--teal);display:none;margin-bottom:4px"></div>
     <div id="printPrev"><span style="color:#999;font-size:12px">Xem trước trang in đầu tiên…</span></div>
     <div id="printStat"></div>
@@ -823,32 +825,38 @@ function binarize(cv){          // máy in nhiệt: chỉ đen hoặc trắng, k
   return cv;
 }
 
-async function buildPageCanvases(rowIdxList, onProgress){
-  const P = tpl.dpi/25.4;                       // px/mm ở DPI in
+/* 2 luồng chất lượng riêng biệt:
+   - thermal: render 4x → downsample 300dpi → binarize (tối ưu cho đầu in nhiệt)
+   - hires:   render 4x → GIỮ NGUYÊN 1200dpi grayscale (tối ưu cho PDF & in laser) */
+async function buildPageCanvases(rowIdxList, onProgress, opts = {}){
+  const hires = !!opts.hires;
+  const P = tpl.dpi/25.4;                         // px/mm ở DPI in
+  const SS = 4;                                   // supersampling ×4 (1200dpi virtual)
+  const outP = hires ? P * SS : P;                // hires: giữ nguyên super-resolution
   const {perRow, gapX, marginL, pageW} = tpl.page;
   const pages = [];
   for(let i=0; i<rowIdxList.length; i+=perRow){
     const page = document.createElement('canvas');
-    page.width  = Math.round(pageW*P);
-    page.height = Math.round(tpl.labelH*P);
+    page.width  = Math.round(pageW*outP);
+    page.height = Math.round(tpl.labelH*outP);
     const ctx = page.getContext('2d');
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,page.width,page.height);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     for(let j=0; j<perRow && i+j<rowIdxList.length; j++){
-      const labelCv = renderLabelCanvas(rows[rowIdxList[i+j]], P);
-      ctx.drawImage(labelCv, Math.round((marginL + j*(tpl.labelW+gapX))*P), 0);
+      const labelCv = renderLabelCanvas(rows[rowIdxList[i+j]], outP, SS, hires);
+      ctx.drawImage(labelCv, Math.round((marginL + j*(tpl.labelW+gapX))*outP), 0);
     }
-    binarize(page);
+    if(!hires) binarize(page);                    // chỉ binarize cho in nhiệt
     pages.push(page);
-    if(onProgress && i % 20 === 0){ onProgress(i, rowIdxList.length); await new Promise(r=>setTimeout(r,0)); }
+    if(onProgress && i % 10 === 0){ onProgress(i, rowIdxList.length); await new Promise(r=>setTimeout(r,0)); }
   }
   return pages;
 }
 
-function renderLabelCanvas(row, P){
+function renderLabelCanvas(row, outP, ss, hires){
   previewRowForRender = row;
-  const SS = 3;                                   // render 3x DPI rồi thu về → nét chữ mượt
-  window.__printSS = SS;
-  const PH = P * SS;
+  const PH = hires ? outP : outP * ss;            // luôn render ở super-resolution
+  window.__printSS = ss;
   const g = new Konva.Group();
   g.add(new Konva.Rect({x:0,y:0,width:tpl.labelW*PH,height:tpl.labelH*PH,fill:'#fff'}));
   tpl.elements.forEach(el => g.add(makeNode(el, PH, false)));
@@ -857,12 +865,14 @@ function renderLabelCanvas(row, P){
   const hi = st.toCanvas({ pixelRatio:1 });
   st.destroy();
   window.__printSS = 1;
+  previewRowForRender = previewRow();
+  if(hires) return hi;                            // PDF: trả nguyên bản 1200dpi
+  // thermal: downsample về 300dpi với bicubic-quality smoothing
   const cv = document.createElement('canvas');
-  cv.width = Math.round(tpl.labelW*P); cv.height = Math.round(tpl.labelH*P);
+  cv.width = Math.round(tpl.labelW*outP); cv.height = Math.round(tpl.labelH*outP);
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(hi, 0, 0, cv.width, cv.height);
-  previewRowForRender = previewRow();
   return cv;
 }
 
@@ -909,6 +919,18 @@ async function doPrint(rowsToPrint){
     stat.textContent = `Đang dựng trang in… ${done}/${total} tem`;
   });
   stat.textContent = `Đang gửi ${pages.length} trang tới máy in…`;
+
+  if(window.nstemDesktop){                    // bản desktop: in thẳng không hộp thoại
+    const printer = localStorage.getItem('nstem_printer') || '';
+    const res = await nstemDesktop.printPages({
+      pages: pages.map(p => p.toDataURL('image/png')),
+      wMm: tpl.page.pageW, hMm: tpl.labelH, printer
+    });
+    stat.textContent = res.ok
+      ? `Đã in ${pages.length} trang (${rowsToPrint.length} tem) → ${printer || 'máy in mặc định'}.`
+      : `Lỗi in: ${res.error}`;
+    return;
+  }
 
   const fr = document.createElement('iframe');
   fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
@@ -1173,23 +1195,37 @@ $('#btnLoadDefault').onclick = ()=>{
 async function exportPdf(rowsToPrint){
   if(!rows.length) return toast('Chưa có dữ liệu');
   const stat = $('#printStat');
+  // hires: 1200dpi grayscale antialiased, không binarize — nét vô cực trong PDF viewer
   const pages = await buildPageCanvases(rowsToPrint, (done,total)=>{
-    stat.textContent = `Đang dựng PDF… ${done}/${total} tem`;
-  });
+    stat.textContent = `Đang dựng PDF chất lượng cao… ${done}/${total} tem`;
+  }, { hires: true });
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'mm', format:[tpl.page.pageW, tpl.labelH],
-    orientation: tpl.page.pageW >= tpl.labelH ? 'landscape' : 'portrait' });
+  const orient = tpl.page.pageW >= tpl.labelH ? 'landscape' : 'portrait';
+  const doc = new jsPDF({ unit:'mm', format:[tpl.page.pageW, tpl.labelH], orientation:orient, compress:true });
   pages.forEach((p,i)=>{
-    if(i>0) doc.addPage([tpl.page.pageW, tpl.labelH], tpl.page.pageW >= tpl.labelH ? 'landscape' : 'portrait');
-    doc.addImage(p.toDataURL('image/png'), 'PNG', 0, 0, tpl.page.pageW, tpl.labelH);
+    if(i>0) doc.addPage([tpl.page.pageW, tpl.labelH], orient);
+    // PNG lossless, không nén thêm (canvas đã tối ưu) → giữ nguyên độ nét
+    doc.addImage(p.toDataURL('image/png'), 'PNG', 0, 0, tpl.page.pageW, tpl.labelH, undefined, 'NONE');
   });
   doc.save((tpl.name||'tem') + '.pdf');
-  stat.textContent = `Đã xuất PDF ${pages.length} trang (${rowsToPrint.length} tem).`;
+  stat.textContent = `Đã xuất PDF ${pages.length} trang · 1200dpi grayscale · ${rowsToPrint.length} tem.`;
 }
 
 /* print modal */
+async function fillPrinters(){
+  if(!window.nstemDesktop) return;
+  const wrap = $('#prPrinterWrap'); wrap.style.display = 'block';
+  const sel = $('#prPrinter');
+  const list = await nstemDesktop.printers();
+  const saved = localStorage.getItem('nstem_printer') || (list.find(p=>p.isDefault)||{}).name || '';
+  sel.innerHTML = list.map(p => `<option ${p.name===saved?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  localStorage.setItem('nstem_printer', sel.value || '');
+  sel.onchange = ()=> localStorage.setItem('nstem_printer', sel.value);
+}
+
 $('#btnPrint').onclick = ()=>{
   if(!rows.length) return toast('Nạp file Excel trước khi in');
+  fillPrinters();
   $('#prTo').value = rows.length;
   const qk = qtyColName();
   const note = $('#prQtyNote');
