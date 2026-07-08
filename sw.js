@@ -1,8 +1,13 @@
 /* NS TEM v1.3 — service worker: offline cache-first */
-const CACHE = 'nstem-v2.0';
+const CACHE = 'nstem-v2.2';
 const CORE = [
   './',
   './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable.png',
+  './favicon-32.png',
   'https://unpkg.com/konva@9.3.16/konva.min.js',
   'https://cdn.jsdelivr.net/npm/bwip-js@4.5.1/dist/bwip-js-min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',

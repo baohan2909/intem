@@ -1,0 +1,79 @@
+{
+  "name": "TEM_NON_VAI",
+  "labelW": 40,
+  "labelH": 18.5,
+  "dpi": 300,
+  "page": {
+    "perRow": 1,
+    "gapX": 0,
+    "marginL": 0,
+    "pageW": 40
+  },
+  "elements": [
+    {
+      "id": "n1",
+      "type": "text",
+      "x": 3.0,
+      "y": 0.5,
+      "w": 36,
+      "h": 3.0,
+      "props": {
+        "content": "{Tên in tem} - {SKU}",
+        "font": "Arial",
+        "sizePt": 8,
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "fit": true
+      }
+    },
+    {
+      "id": "n2",
+      "type": "text",
+      "x": 0.5,
+      "y": 3.8,
+      "w": 39,
+      "h": 2.1,
+      "props": {
+        "content": "{Mã sản xuất}",
+        "font": "Arial",
+        "sizePt": 6.5,
+        "bold": false,
+        "italic": false,
+        "align": "center",
+        "fit": true
+      }
+    },
+    {
+      "id": "n3",
+      "type": "barcode",
+      "x": 8.0,
+      "y": 6.2,
+      "w": 25,
+      "h": 7.6,
+      "props": {
+        "bcid": "code128",
+        "data": "{Barcode}",
+        "showText": true,
+        "textPt": 5.5
+      }
+    },
+    {
+      "id": "n4",
+      "type": "text",
+      "x": 0.5,
+      "y": 14.3,
+      "w": 39,
+      "h": 3.2,
+      "props": {
+        "content": "{Giá bán}",
+        "font": "Arial",
+        "sizePt": 8.5,
+        "bold": true,
+        "italic": false,
+        "align": "center",
+        "fit": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "name": "TEM_BAO_HIEM",
+  "labelW": 41,
+  "labelH": 20,
+  "dpi": 300,
+  "page": {
+    "perRow": 1,
+    "gapX": 0,
+    "marginL": 0,
+    "pageW": 41
+  },
+  "elements": [
+    {
+      "id": "b1",
+      "type": "text",
+      "x": 0.5,
+      "y": 1.7,
+      "w": 40,
+      "h": 2.4,
+      "props": {
+        "content": "NSX: {Mã sản xuất} - {Ngày sản xuất}",
+        "font": "Arial",
+        "sizePt": 6.5,
+        "bold": true,
+        "italic": false,
+        "align": "center",
+        "fit": true
+      }
+    },
+    {
+      "id": "b2",
+      "type": "text",
+      "x": 0.5,
+      "y": 4.3,
+      "w": 40,
+      "h": 2.2,
+      "props": {
+        "content": "{Mã tham chiếu cũ}",
+        "font": "Arial",
+        "sizePt": 7,
+        "bold": true,
+        "italic": false,
+        "align": "center",
+        "fit": true
+      }
+    },
+    {
+      "id": "b3",
+      "type": "barcode",
+      "x": 7.5,
+      "y": 7.2,
+      "w": 26,
+      "h": 7.8,
+      "props": {
+        "bcid": "code128",
+        "data": "{Barcode}",
+        "showText": true,
+        "textPt": 5.5
+      }
+    },
+    {
+      "id": "b4",
+      "type": "text",
+      "x": 0.5,
+      "y": 15.6,
+      "w": 40,
+      "h": 3.5,
+      "props": {
+        "content": "{Giá bán}",
+        "font": "Arial",
+        "sizePt": 11,
+        "bold": true,
+        "italic": false,
+        "align": "center",
+        "fit": true
+      }
+    }
+  ]
+}

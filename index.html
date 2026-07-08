@@ -4,9 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NS TEM — Thiết kế & In tem mã vạch</title>
-<meta name="theme-color" content="#0B1220">
+<meta name="theme-color" content="#D6006C">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="manifest" href='data:application/manifest+json,{"name":"NS TEM","short_name":"NS TEM","start_url":".","display":"standalone","background_color":"%230B1220","theme_color":"%230B1220"}'>
+<meta name="apple-mobile-web-app-title" content="NS TEM">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap&subset=vietnamese" rel="stylesheet">
 <script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
@@ -35,7 +40,7 @@ input[type=checkbox]{width:auto}
 ::-webkit-scrollbar-track{background:transparent}
 
 /* ===== Layout ===== */
-#app{display:grid;grid-template-rows:52px 1fr 220px;grid-template-columns:56px 1fr 300px;height:100vh}
+#app{display:grid;grid-template-rows:52px 1fr 220px 28px;grid-template-columns:56px 1fr 300px;height:100vh}
 header{grid-column:1/4;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
 #toolbar{grid-row:2;grid-column:1;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:6px}
 #canvasWrap{grid-row:2;grid-column:2;position:relative;overflow:hidden;background:
@@ -131,6 +136,13 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
 .radio-row label{display:flex;gap:6px;align-items:center;font-size:12.5px;cursor:pointer}
 .radio-row input{width:auto}
 
+/* ===== Footer bản quyền (chuẩn quốc tế) ===== */
+#footer{grid-row:4;grid-column:1/4;background:var(--panel);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:14px;font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter-spacing:.35px;padding:0 16px;user-select:none;overflow:hidden;white-space:nowrap}
+#footer b{color:var(--text);font-family:var(--font-disp);font-weight:600;letter-spacing:1.2px}
+#footer em{font-style:normal;color:var(--gold)}
+#footer .sep{color:var(--ns);opacity:.75}
+#footer .tag{color:var(--ns);font-weight:600;letter-spacing:.6px}
+
 .toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--teal);color:var(--teal);padding:9px 18px;border-radius:9px;font-weight:600;font-size:12.5px;z-index:200;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1}
 
@@ -180,7 +192,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     NS <em>TEM</em>
     <span class="brand">NÓN SƠN</span>
   </div>
-  <span class="ver" id="verBadge" title="Thông tin bản quyền">v2.0</span>
+  <span class="ver" id="verBadge" title="Thông tin bản quyền">v2.2</span>
   <select id="tplSelect" style="width:160px" title="Chọn mẫu tem"></select>
   <input id="tplName" value="TEM_BH" title="Tên mẫu tem" style="width:150px">
   <button class="btn sm" id="btnNewTpl" title="Tạo mẫu mới trống">＋ Mới</button>
@@ -196,6 +208,8 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Lưu mẫu</button>
   <button class="btn gold" id="btnPrint">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>In tem</button>
+  <button class="btn sm" id="btnInstall" style="display:none;background:var(--ns);border-color:var(--ns);color:#fff" title="Cài NS TEM lên máy để mở bằng biểu tượng">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v13m0 0-4-4m4 4 4-4M4 21h16"/></svg>Cài đặt</button>
   <div class="cprt" title="© 2026 Công ty TNHH Thời trang Nón Sơn — All rights reserved">
     <span class="dot"></span>© 2026 <b>NÓN SƠN</b>
   </div>
@@ -275,6 +289,16 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
   </div></div></div>
 </div>
 
+<footer id="footer">
+  <span>© 2026 <b>CÔNG TY TNHH THỜI TRANG NÓN SƠN</b></span>
+  <span class="sep">·</span>
+  <span>All rights reserved</span>
+  <span class="sep">·</span>
+  <span>NS <em>TEM</em> <span class="tag">v2.2</span></span>
+  <span class="sep">·</span>
+  <span>Bảo hộ theo Luật Sở hữu trí tuệ Việt Nam</span>
+</footer>
+
 </div><!-- /app -->
 
 <!-- ===== Print modal ===== -->
@@ -329,7 +353,7 @@ tbody tr.on td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
       </div>
       <div>
         <h4>NS <em>TEM</em></h4>
-        <p>NÓN SƠN · v2.0</p>
+        <p>NÓN SƠN · v2.2</p>
       </div>
     </div>
     <dl class="about-grid">
@@ -1294,7 +1318,7 @@ async function exportPdf(rowsToPrint){
     title: `${tpl.name || 'Tem'} — NS TEM`,
     subject: 'Tem mã vạch — hệ thống nội bộ Nón Sơn',
     author: 'Công ty TNHH Thời trang Nón Sơn',
-    creator: 'NS TEM v2.0',
+    creator: 'NS TEM v2.2',
     keywords: 'Nón Sơn, NS TEM, tem, mã vạch, barcode, © 2026 Nón Sơn'
   });
   pages.forEach((p,i)=>{
@@ -1334,6 +1358,36 @@ $$('#printModal input').forEach(i => i.addEventListener('change', ()=>{ updatePr
 $('#prGo').onclick   = ()=> doPrint(getPrintRowList());
 $('#prTest').onclick = ()=> doPrint(getPrintRowList().slice(0, tpl.page.perRow));
 $('#prPdf').onclick  = ()=> exportPdf(getPrintRowList());
+
+/* ===== PWA install ===== */
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  $('#btnInstall').style.display = 'inline-flex';
+});
+window.addEventListener('appinstalled', ()=>{
+  $('#btnInstall').style.display = 'none';
+  deferredInstall = null;
+  toast('Đã cài NS TEM vào máy · mở bằng biểu tượng ngoài màn hình');
+});
+$('#btnInstall').onclick = async ()=>{
+  // iOS Safari không có prompt — hướng dẫn thủ công
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS){
+    alert('Trên iPhone/iPad:\n\n1. Bấm nút Chia sẻ (hình mũi tên đi lên) ở thanh dưới Safari\n2. Kéo xuống chọn "Thêm vào Màn hình chính"\n3. Bấm "Thêm"');
+    return;
+  }
+  if(!deferredInstall) return toast('Trình duyệt chưa sẵn sàng cài — hãy tải lại trang');
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  if(outcome === 'accepted') $('#btnInstall').style.display = 'none';
+  deferredInstall = null;
+};
+// Nếu đang chạy standalone (đã cài) thì ẩn nút
+if(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone){
+  document.addEventListener('DOMContentLoaded', ()=> { const b=$('#btnInstall'); if(b) b.style.display='none'; });
+}
 
 /* PWA offline */
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
